@@ -27,17 +27,15 @@ def payment_process(request):
         "amount": '%.2f' % order.get_total_cost().quantize(Decimal('.01')),
         "item_name": 'Order {}'.format(order.id),
         "invoice": str(order.id),
-        "currency_code": 'EUR',
+        "currency_code": 'USD',
         "notify_url": 'http://{}{}'.format(host, reverse('paypal-ipn')), #request.build_absolute_uri(reverse('paypal-ipn')),
         "return_url": 'http://{}{}'.format(host, reverse('payment:done')), #request.build_absolute_uri(reverse('your-return-view')),
         "cancel_return": 'http://{}{}'.format(host, reverse('payment:canceled')), #request.build_absolute_uri(reverse('your-cancel-view')),
-
-        # "custom": "premium_plan",  # Custom command to correlate to some function later (optional)
     }
 
     # Create the instance.
     form = PayPalPaymentsForm(initial=paypal_dict)
-    context = {"form": form,
-                "order": order}
 
-    return render(request, "payment.html", context)
+
+    return render(request, "payment/process.html", {'order': order,
+                                                    'form': form})
