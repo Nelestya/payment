@@ -20,22 +20,26 @@ def payment_process(request):
     order_id = request.session.get('order_id')
     order = get_object_or_404(Order, id=order_id)
     host = request.get_host()
-
+    
+    # if not buy cancel the order
+    if order.get_total_cost() == 0.00:
+        return render(request, 'payment/canceled.html')
+    else:
     # What you want the button to do.
-    paypal_dict = {
-        "business": settings.PAYPAL_RECEIVER_EMAIL,
-        "amount": '%.2f' % order.get_total_cost().quantize(Decimal('.01')),
-        "item_name": 'Order {}'.format(order.id),
-        "invoice": str(order.id),
-        "currency_code": 'USD',
-        "notify_url": 'http://{}{}'.format(host, reverse('paypal-ipn')), #request.build_absolute_uri(reverse('paypal-ipn')),
-        "return_url": 'http://{}{}'.format(host, reverse('payment:done')), #request.build_absolute_uri(reverse('your-return-view')),
-        "cancel_return": 'http://{}{}'.format(host, reverse('payment:canceled')), #request.build_absolute_uri(reverse('your-cancel-view')),
-    }
+        paypal_dict = {
+            "business": settings.PAYPAL_RECEIVER_EMAIL,
+            "amount": '%.2f' % order.get_total_cost().quantize(Decimal('.01')),
+            "item_name": 'Order {}'.format(order.id),
+            "invoice": str(order.id),
+            "currency_code": 'USD',
+            "notify_url": 'http://{}{}'.format(host, reverse('paypal-ipn')), #request.build_absolute_uri(reverse('paypal-ipn')),
+            "return_url": 'http://{}{}'.format(host, reverse('payment:done')), #request.build_absolute_uri(reverse('your-return-view')),
+            "cancel_return": 'http://{}{}'.format(host, reverse('payment:canceled')), #request.build_absolute_uri(reverse('your-cancel-view')),
+        }
 
-    # Create the instance.
-    form = PayPalPaymentsForm(initial=paypal_dict)
+        # Create the instance.
+        form = PayPalPaymentsForm(initial=paypal_dict)
 
 
-    return render(request, "payment/process.html", {'order': order,
+        return render(request, "payment/process.html", {'order': order,
                                                     'form': form})
